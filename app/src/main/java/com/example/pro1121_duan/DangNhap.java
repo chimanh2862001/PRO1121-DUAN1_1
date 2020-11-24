@@ -1,0 +1,104 @@
+package com.example.pro1121_duan;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.pro1121_duan.DAO.NguoiDungDao;
+import com.example.pro1121_duan.Model.NguoiDung;
+import com.example.pro1121_duan.SQLite.MySQLite;
+
+import java.util.List;
+
+public class DangNhap extends AppCompatActivity {
+    EditText edtUser,edtPass;
+    Button button2;
+    TextView tvDangky;
+    MySQLite mySQLite;
+    CheckBox checkBox;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_dang_nhap);
+         mySQLite=new MySQLite(DangNhap.this);
+
+
+//        List<NguoiDung> nguoiDungList=nguoiDungDao.dangNhap();
+        edtUser=findViewById(R.id.edtUser);
+        edtPass=findViewById(R.id.edtPass);
+        button2=findViewById(R.id.button2);
+        tvDangky=findViewById(R.id.tvDangky1);
+        checkBox=findViewById(R.id.checkBox);
+        this.load();
+
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NguoiDungDao nguoiDungDao=new NguoiDungDao(mySQLite);
+                String user=edtUser.getText().toString();
+                String pass=edtPass.getText().toString();
+                List<NguoiDung> nguoiDungList=nguoiDungDao.dangNhap(user,pass);
+
+
+                   if (nguoiDungList.size()==0){
+                       edtUser.setError("Vui Lòng Kiểm Tra Lại Tài Khoảm và Mật Khẩu");
+                   }else {
+                       for (NguoiDung s:nguoiDungList){
+                           if (s.username.equals(user) && s.pass.equals(pass)){
+                               Intent intent=new Intent(DangNhap.this,MainActivity.class);
+                               intent.putExtra("uss",user);
+                               intent.putExtra("pass",pass);
+                               startActivity(intent);
+                               Toast.makeText(DangNhap.this, "Login Successfully", Toast.LENGTH_SHORT).show();
+                           }else {
+                               edtUser.setError("Vui lòng kiểm tra lại tài khoản và mật khẩu");
+
+                           }
+                       }
+                   }
+                }
+
+        });
+
+        tvDangky.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(DangNhap.this,DangKy.class);
+                startActivity(intent);
+            }
+        });
+
+        checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences sharedPreferences=getSharedPreferences("abc",MODE_PRIVATE);
+                SharedPreferences.Editor editor=sharedPreferences.edit();
+
+                String us=edtUser.getText().toString().trim();
+                String pass=edtPass.getText().toString().trim();
+
+                editor.putString("us",us);
+                editor.putString("pass",pass);
+                editor.commit();
+            }
+        });
+    }
+
+     public void load(){
+        SharedPreferences sharedPreferences=getSharedPreferences("abc",MODE_PRIVATE);
+         String user=sharedPreferences.getString("us",null);
+         String pass=sharedPreferences.getString("pass",null);
+
+         edtUser.setText(String.valueOf(user));
+         edtPass.setText(String.valueOf(pass));
+
+     }
+}
